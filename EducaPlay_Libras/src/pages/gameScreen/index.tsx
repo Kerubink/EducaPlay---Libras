@@ -134,14 +134,25 @@ const GameScreen = () => {
       if (isCorrect) {
         setScore((prev) => prev + (gameData.rewards.points || 0));
       } else {
-        setScore((prev) => Math.max(0, prev + (gameData.penalties.wrongAnswer || 0)));
-        setRemainingAttempts((prev) => prev - 1);
+        setScore((prev) =>
+          Math.max(0, prev + (gameData.penalties.wrongAnswer || 0))
+        );
 
-        if (remainingAttempts - 1 === 0) {
-          alert("Você perdeu todas as tentativas. Jogo encerrado.");
+        if (infiniteMode) {
+          alert(
+            "Você perdeu sua única tentativa no modo infinito. Jogo encerrado."
+          );
           setGameOver(true);
           navigate("/");
           return;
+        } else {
+          setRemainingAttempts((prev) => prev - 1);
+          if (remainingAttempts - 1 === 0) {
+            alert("Você perdeu todas as tentativas. Jogo encerrado.");
+            setGameOver(true);
+            navigate("/");
+            return;
+          }
         }
       }
 
@@ -161,7 +172,12 @@ const GameScreen = () => {
   };
 
   const randomGameType = () => {
-    const gameModes = ["signalToText", "objectToSignal", "signalToObject", "textToSignal"];
+    const gameModes = [
+      "signalToText",
+      "objectToSignal",
+      "signalToObject",
+      "textToSignal",
+    ];
     return gameModes[Math.floor(Math.random() * gameModes.length)];
   };
 
@@ -211,9 +227,19 @@ const GameScreen = () => {
       </header>
 
       <main className="flex flex-col items-center bg-white p-6 rounded-lg shadow-lg mt-6 w-full max-w-lg">
-        <p className="text-lg font-semibold text-gray-800 mb-4">Pontuação: {score}</p>
-        <p className="text-lg font-semibold text-gray-800 mb-4">Tentativas Restantes: {remainingAttempts}</p>
-        {!infiniteMode && <p className="text-lg font-semibold text-gray-800 mb-4">Tempo Restante: {timer}s</p>}
+        <p className="text-lg font-semibold text-gray-800 mb-4">
+          Pontuação: {score}
+        </p>
+        <p className="text-lg font-semibold text-gray-800 mb-4">
+          {infiniteMode
+            ? "Tentativa única no modo infinito"
+            : `Tentativas Restantes: ${remainingAttempts}`}
+        </p>{" "}
+        {!infiniteMode && (
+          <p className="text-lg font-semibold text-gray-800 mb-4">
+            Tempo Restante: {timer}s
+          </p>
+        )}
         {feedback && (
           <div
             className={`text-center py-2 px-4 rounded-lg mb-4 font-bold ${
@@ -227,9 +253,13 @@ const GameScreen = () => {
         )}
         <div className="flex justify-center items-center mb-6">
           {gameType === "textToSignal" && (
-            <div className="mb-6 text-xl font-semibold">{gameData.signals[currentIndex].text}</div>
+            <div className="mb-6 text-xl font-semibold">
+              {gameData.signals[currentIndex].text}
+            </div>
           )}
-          {(gameType === "signalToText" || gameType === "objectToSignal" || gameType === "signalToObject") && (
+          {(gameType === "signalToText" ||
+            gameType === "objectToSignal" ||
+            gameType === "signalToObject") && (
             <img
               src={gameData.signals[currentIndex].signalImage}
               alt={`Sinal ${currentIndex + 1}`}
@@ -244,7 +274,15 @@ const GameScreen = () => {
               className="py-3 px-6 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
               onClick={() => handleAnswer(alt.value)}
             >
-              {alt.type === "text" ? alt.value : <img src={alt.value} alt="Alternativa" className="w-20 h-20 object-cover rounded-md" />}
+              {alt.type === "text" ? (
+                alt.value
+              ) : (
+                <img
+                  src={alt.value}
+                  alt="Alternativa"
+                  className="w-20 h-20 object-cover rounded-md"
+                />
+              )}
             </button>
           ))}
         </div>
